@@ -8,11 +8,10 @@
 #include <time.h>
 #include <stdlib.h>
 
+#define LOOP 3
+
 int main(){
     srand(time(NULL)); // seed for rng
-    shm_unlink("/table"); 
-    sem_unlink("/empty");
-    sem_unlink("/full");
 
     printf("Starting producer...\n");
 
@@ -49,7 +48,7 @@ int main(){
 
     // PRODUCER LOGIC
     int i = 0;
-    while(i < 10){   
+    while(i < LOOP){   
         sem_wait(empty_sem);
 
         sleep(1); // simulate producing

@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#define LOOP 3
+
 int main(){
     printf("Starting consumer...\n");
 
@@ -32,20 +34,17 @@ int main(){
     int* ptr = mmap(NULL, 8, PROT_READ, MAP_SHARED, file_descriptor, 0);
     // consumer logic
     int i = 0;
-    while(i < 10){
+    while(i < LOOP){
         sem_wait(full_sem);
 
         sleep(1); // simulate consuming
-        
+
         printf("[Consumer] consumed %d from table\n", *ptr);
         printf("[Consumer] consumed %d from table\n", *(ptr+1));
 
         sem_post(empty_sem);
         i++;
     }
-
-
-    // clean up 
 
     return 0;
 }
