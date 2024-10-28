@@ -10,20 +10,27 @@
 
 int main(){
     srand(time(NULL)); // seed for rng
+    shm_unlink("/table"); 
+    sem_unlink("/empty");
+    sem_unlink("/full");
 
     printf("Starting producer...\n");
 
     // create semaphore with read/write permissions for owner
-    sem_unlink("/semaphore");
-    sem_t *sem = sem_open("/semaphore", O_CREAT, S_IRUSR | S_IWUSR, 1);
-    if(sem == SEM_FAILED){
+    sem_t *empty_sem = sem_open("/empty", O_CREAT, S_IRUSR | S_IWUSR, 1);
+    if(empty_sem == SEM_FAILED){
+        perror("Failed to open semaphore");
+        exit(1);
+    }
+
+    // note that we initialize this to 0
+    sem_t *full_sem = sem_open("/full", O_CREAT, S_IRUSR | S_IWUSR, 0);
+    if(full_sem == SEM_FAILED){
         perror("Failed to open semaphore");
         exit(1);
     }
 
     // SHARED MEMORY
- 
-    shm_unlink("/table");
 
     // shared memory name, flag (create or read-write) and permissions mode
     // permissions here are set to WRITE for the owner of the process
@@ -33,22 +40,33 @@ int main(){
         exit(1);
     }
 
-    // establish size of object, we need 2 items (in this case I'll use int) so 8 bytes
+    // establish size of object, we need 2 items (ints) so 8 bytes
     ftruncate(file_descriptor, 8);
 
     // so mmap maps the shared memory object to this processes address space, so it can accessed
     // we only give PROT_WRITE because this is the producer
     int* ptr = mmap(NULL, 8, PROT_READ | PROT_WRITE, MAP_SHARED, file_descriptor, 0);
 
-
     // PRODUCER LOGIC
+    int i = 0;
+    while(i < 10){   
+        sem_wait(empty_sem);
 
-    sem_wait(sem);
+        sleep(1); // simulate producing
+        
+        *ptr = rand()%100;
+        printf("[Producer] wrote %d to table\n", *ptr);
+        *(ptr+1) = rand()%100;
+        printf("[Producer] wrote %d to table\n", *(ptr+1));
+        
+        sem_post(full_sem);
+        i++;
+    }
 
-    *ptr = rand()%100;
-    *(ptr+1) = rand()%100;
-
-    sem_post(sem);
+    // clean up 
+    shm_unlink("/table"); 
+    sem_unlink("/empty");
+    sem_unlink("/full");
 
     return 0;
 }
