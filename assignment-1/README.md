@@ -4,7 +4,7 @@
 - Note that `empty_sem` is initialized to 1 and `full_sem` is initialized to 0
     - We need this in order to ensure that initially the consumer will wait and the producer will produce
 - Code for creating/accessing semaphores and shared memory space is pretty much the same for `producer.c` and `consumer.c`.
-- There is 1 second Sleep() call when producing/consuming just to simulate work
+- There is 1 second `sleep` call when producing/consuming just to simulate work
 
 ## Compiling and running
 - There is a `LOOP` macro on both .c files
