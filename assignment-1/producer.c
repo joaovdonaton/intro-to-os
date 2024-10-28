@@ -15,6 +15,12 @@ int main(){
 
     printf("Starting producer...\n");
 
+    /* // emergency cleanup
+    shm_unlink("/table"); 
+    sem_unlink("/empty");
+    sem_unlink("/full");
+    */
+
     // create semaphore with read/write permissions for owner
     sem_t *empty_sem = sem_open("/empty", O_CREAT, S_IRUSR | S_IWUSR, 1);
     if(empty_sem == SEM_FAILED){
